@@ -139,7 +139,7 @@ def dump(spacesize, dicts):
     indents = 0
     listNest = 0
     
-    def unRoll(value, listabove = False):
+    def unRoll(value, listabove = False, firstdictIndent = False):
         out = ""
         nonlocal spacesize
         nonlocal line
@@ -147,16 +147,18 @@ def dump(spacesize, dicts):
         nonlocal listNest
         
         if isinstance(value, list):
-            indents += 1
-            indstr = " " * (spacesize * indents + 2 * listNest)
             if listabove:
                 out += json.dumps(value) + "\n" #todo replace with flow controler
             else:
+                if not firstdictIndent:
+                    indents += 1
+                indstr = " " * (spacesize * indents + 2 * listNest)
                 out += "\n"
                 for entry in value:
                     out += indstr + "- "
                     out += unRoll(entry, True)
-            indents -= 1
+                if not firstdictIndent:
+                    indents -= 1
         elif isinstance(value, dict):
             if listabove:
                 listNest += 1
@@ -167,7 +169,7 @@ def dump(spacesize, dicts):
             indstr = " " * (spacesize * indents + 2 * listNest)
             for key, entry in value.items():
                 out += ("" if (first and listabove) else indstr) + key +": "
-                out += unRoll(entry)
+                out += unRoll(entry, False, listabove and first)
                 first = False
             if listabove:
                 listNest -= 1

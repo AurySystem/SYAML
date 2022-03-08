@@ -51,7 +51,7 @@ def recurse(dict):
 	bleh = {}
 	if depth == 0:
 		return
-	dict.update({"key":recurse(bleh)})
+	dict.update({"keys":recurse(bleh)})
 	return dict
 #a[0] = recurse(a[0])
 b = syaml.dump(2,a)

@@ -1,47 +1,11 @@
 
-testyaml = `---
-key:
-  key: f
-  key2: l
-  nest:
-    inner: g
-    nest2:
-      nestted: 3
-    inner2: s
-  outnest: 3
-ha: g
-je: r
----
-key: value
-a_list:
-  - itema
-  - listlist:
-    - itemitem
-  - itemb
-  - key1: bweh
-    key2: bweh
-    key3: bweh
-    key4: bweh
-  - innerList:
-    - innerItem
-    - indict: reh
-      rar: dd
-      sublist:
-        - iteml
-        - itemc
-        - 
-        - itm
-        - [44,55,66,"7t","8t","eeee"]
-        - ohno
-        - "test"
-        - "ending": obj
-          key: last of inner
-    - aa: aaa
-  - lastitem
-anotherkey: value
-...`
 
-function yaml(string) {
+/* 
+ * For insertion directly into one file js projects or just loading as an additional script file
+ * 
+ */
+SYAML = {};
+SYAML.parse = function(string) {
     let input = string.split(/\r\n|\n/);
     let out = []; // array of objects
     let object = -1;
@@ -76,6 +40,10 @@ function yaml(string) {
             out = out.substring(out.indexOf("\"")+1, out.lastIndexOf("\""));
         }else if(out.startsWith("[")){
             out = JSON.parse(out.substring(out.indexOf("["), out.lastIndexOf("]")+1))
+        }else if(out.startsWith("{")){
+            out = JSON.parse(out.substring(out.indexOf("{"), out.lastIndexOf("}")+1))
+        }else if(out.includes(" # ")){
+            out = out.substring(0,out.indexOf(" # "))
         }
         return out;
     }
@@ -96,7 +64,6 @@ function yaml(string) {
 
         let curline = input[line];
         if (string.replace(" ", "") === "") {
-            console.log("aaaa")
             line++
             curline = input[line];
             if (spSize == -1 && curline.charAt(0) === " ") {
@@ -183,4 +150,130 @@ function yaml(string) {
     return out;
 }
 
-console.log(JSON.stringify(yaml(testyaml), null, 2));
+
+SYAML.stringify = function(spacesize, dicts){
+    let out = "";
+    let line = 0;
+    let indents = 0;
+    let listNest = 0;
+    
+    let unRoll = function(value, listabove = false, firstDictIndent = false) {
+        let out = "";
+        
+        if (Array.isArray(value)){
+            if (listabove) {
+                out += JSON.stringify(value) + "\n"; //todo replace with flow controler
+            }
+            else {
+                if(!firstDictIndent) indents++;
+                let indstr = "".padStart((spacesize * indents) + (2 * listNest)," ");
+                out += "\n";
+                for (let i = 0; i < value.length; i++) {
+                    out += indstr + "- ";
+                    out += unRoll(value[i], true);
+                }
+                if(!firstDictIndent) indents--;
+            }
+            
+        } else if (typeof(value) === "object" && !Array.isArray(value)){
+            if (listabove) {
+                listNest++;
+            } else {
+                out += "\n"
+                indents++;
+            }
+            first = true;
+            let indstr = "".padStart((spacesize * indents) + (2 * listNest), " ");
+            for (key in value) {
+                out += (first && listabove ? "" : indstr) + key +": ";
+                out += unRoll(value[key], false, listabove && first);
+                first = false;
+            }
+            if (listabove) {
+                listNest--;
+            } else {
+                indents--;
+            }
+        } else if (typeof value == "string"){
+            if (value.search('{|}|[|]|#') != -1){
+                out += "\"" + value + "\"\n";
+            } else{
+                out += value + "\n" ;
+            }
+        } else {
+            out += value + "\n";
+        }
+        
+        return out
+    }
+    
+    for (let i = 0; i < dicts.length; i++){
+        out += "---\n"
+        for (key in dicts[i]) {
+            out += key +": ";
+            out += unRoll(dicts[i][key]);
+        }
+    }
+    
+    return out;
+}
+
+
+//this is just for using node js
+exports.parse = SYAML.parse;
+exports.stringify = SYAML.stringify;
+
+/*
+//test cases
+testyaml = `---
+key:
+  key: f
+  key2: l
+  nest:
+    inner: g
+    nest2:
+      nestted: 3
+    inner2: s
+  outnest: 3
+ha: g
+je: r
+---
+key: value
+a_list:
+  - itema
+  - listlist:
+    - itemitem
+  - itemb
+  - key1: bweh
+    key2: bweh
+    key3: bweh
+    key4: bweh
+  - innerList:
+    - innerItem
+    - indict: reh
+      rar: dd
+      sublist:
+        - iteml
+        - itemc
+        - 
+        - itm
+        - [44,55,66,"7t","8t","eeee"]
+        - ohno
+        - "test"
+        - "ending": obj
+          key: last of inner
+    - aa: aaa
+  - lastitem
+anotherkey: value
+...`;
+
+
+let blep = SYAML.parse(testyaml);
+let aa = JSON.stringify(blep, null, 2);
+console.log("syaml test");
+console.log(testyaml);
+console.log("json");
+console.log(aa);
+console.log("syaml export");
+console.log(SYAML.stringify(2,blep));
+*/
