@@ -45,15 +45,20 @@ anotherkey: value
 a = syaml.load(testcase)
 print(a)
 depth = 12
+
+
 def recurse(dict):
-	global depth 
-	depth -= 1 #will this be a problem?
-	bleh = {}
-	if depth == 0:
-		return
-	dict.update({"keys":recurse(bleh)})
-	return dict
-#a[0] = recurse(a[0])
-b = syaml.dump(2,a)
+    global depth 
+    depth -= 1  #will this be a problem?
+    bleh = {}
+    if depth == 0:
+        return
+    dict.update({"keys": recurse(bleh)})
+    return dict
+
+
+a[0] = recurse(a[0])
+
+b = syaml.dump(2, a)
 print(b)
 print(syaml.load(b))

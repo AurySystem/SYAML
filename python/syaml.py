@@ -1,9 +1,10 @@
 import re
 import json
 
+
 def load(string):
-    yaml = re.split('\r\n|\n',string)
-    out = [] #list of dicts
+    yaml = re.split('\r\n|\n', string)
+    out = []  # list of dicts
     doc = -1
     pobj = -1
     line = 0
@@ -11,22 +12,21 @@ def load(string):
     indents = 0
     listNest = 0
 
-
-    def spaceCount (lin):
+    def spaceCount(lin):
         spCnt = 0
         if (lin >= len(yaml)):
             return -1
         while (yaml[lin][spCnt] == " "): 
             spCnt += 1
         return spCnt
-    
-    def processLine (string): #top level
-        if(string.find(":") != -1):
+
+    def processLine(string):  # top level
+        if( string.find(":") != -1 ):
             temp = re.split(': |:$', string)
             temp = [temp.pop(0), ": ".join(temp)]
             out[doc].update({processKey(temp[0]): processIndents(temp[1],False)})
 
-    def processValue (string): #post indent step
+    def processValue(string):  # post indent step
         out = string
         out = re.sub('- *', "", out)
         if(out.startswith("\"")):
@@ -36,12 +36,11 @@ def load(string):
         elif(out.startswith("{")):
             out = json.loads(out[out.find("{"): out.rfind("}")+1])
         elif(out.find(" # ") != -1):
-            out = out[:out.find(" # ")] # todo flow and numbers
-        
+            out = out[:out.find(" # ")]  # todo flow and numbers
         return out
-    
 
-    def processKey (string) : #strip quotes
+
+    def processKey(string) : #strip quotes
         out = string
         if(out.startswith("- ")):
             out = out[2:]        
@@ -193,5 +192,6 @@ def dump(spacesize, dicts):
     
     return out
 
+
 def dumps(spacesize, *dicts):
-    dump(spacesize,dicts)
+    dump(spacesize, dicts)
